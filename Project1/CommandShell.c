@@ -20,7 +20,8 @@
 
 //##################################################################//
 //##################################################################//
-//							PROTOTYPES								// //##################################################################//
+//							PROTOTYPES								// 
+//##################################################################//
 //##################################################################//
 char *get_input(void);
 char **parse_input(char *line);
@@ -74,24 +75,18 @@ int main(void)
 		/*FORK CHILD PROCESS*/
 		int pid = fork();
 		if(pid==0){
-			//the child will execute second unless wait is specified
-			//printf("hello world\n");
-			//execvp(args[0], &args[1]);
-		//	if(&args[1] != NULL){
-				execvp(args[0], args);
-		//	}else{
-		//		execvp(args[0],NULL);
-		//	}
+			execvp(args[0], args);
+			if(should_wait){
+				printf("osh>");
+			}
 			
 		}else{
-//			wait(NULL); /*toggled if '&' is found in args*/
 			if(should_wait){
 				wait(NULL);
 			}
-			printf("fuggit\n");/*for debugging*/
+			//printf("fuggit\n");/*for debugging*/
 		}
 		fflush(stdout);
-		//should_run=0;/*currently for testing, only set when 'exit' is entered*/
 	}
 	return 0;
 }
@@ -135,8 +130,3 @@ int str_find(char *container, char to_find, size_t size){
 	}
 	return 1;
 }
-
-
-
-
-
