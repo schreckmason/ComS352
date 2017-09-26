@@ -1,7 +1,7 @@
 //##################################################################//
 //##################################################################//
 //								INCLUDES							//
-//##################################################################//
+//##################################################################// 
 //##################################################################//
 #include <stdio.h> 
 #include <stdlib.h>
@@ -11,7 +11,7 @@
 #include <string.h>
 
 //##################################################################//
-//##################################################################//
+//##################################################################// 
 //							DEFINE / GLOBALS						//
 //##################################################################//
 //##################################################################//
@@ -20,7 +20,7 @@
 
 //##################################################################//
 //##################################################################//
-//							PROTOTYPES								// 
+//							PROTOTYPES								//
 //##################################################################//
 //##################################################################//
 char *get_input(void);
@@ -41,11 +41,11 @@ int main(void)
 	char **tokenized_line;
 	while(should_run){
 		printf("osh>");
-		
+		fflush(stdout);
 		/* Obtain the line of input from keyboard*/
 		char *line = NULL;
 		line = get_input();
-//		printf("typed %s\n", line);/*for debugging*/
+		//printf("typed %s\n", line);/*for debugging*/
 		
 		/*Sanitize input of newline character for string comparison*/
 		line[ strcspn(line, "\r\n") ] = 0;	
@@ -56,7 +56,6 @@ int main(void)
 			should_run=1;
 		}
 		
-	
 		/* Parse the input from keyboard into tokens then 'save' to args array */
 		tokenized_line = parse_input(line);
 		for(int i=0;i<(MAX_LINE/2+1);i++){
@@ -68,25 +67,24 @@ int main(void)
 				}
 				args[i] = tokenized_line[i];
 			}else{
-				continue;
+				//continue;
+				break;
 			}
 		}
-
-		/*FORK CHILD PROCESS*/
-		int pid = fork();
+/*FORK CHILD PROCESS*/
+		pid_t pid = fork();
 		if(pid==0){
+			printf("entered child process\n");/*for debugging*/
 			execvp(args[0], args);
-			if(should_wait){
-				printf("osh>");
-			}
-			
+			//need to flush the output here so that way we won't get what looks like a hung terminal
+			//printf("child finished\n");/*for debugging*/
 		}else{
 			if(should_wait){
 				wait(NULL);
 			}
-			//printf("fuggit\n");/*for debugging*/
+			printf("parent finished\n");/*for debugging*/
 		}
-		fflush(stdout);
+		//TODO: clear out args here
 	}
 	return 0;
 }
