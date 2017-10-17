@@ -105,6 +105,7 @@ struct QNode *peek(struct Queue *q){
 //##################################################################//
 char *get_input(void);
 char **parse_input(char *line);
+char **history_parse(char *line);
 void empty_args(char **arguments);
 
 //##################################################################//
@@ -120,6 +121,7 @@ int main(void)
 	int run_count = 0;
 	char *exit_string = "exit";
 	char **tokenized_line;
+	char **tokenized_history;
 	int status;
 	struct Queue *args_q = createQueue();
 
@@ -130,70 +132,73 @@ int main(void)
 		char *line = NULL;
 		line = get_input();
 		
-//		enqueue(args_q, run_count, line);
 		/*Sanitize input of newline character for string comparison*/
-		line[ strcspn(line, "\r\n") ] = 0;	
+		line[ strcspn(line, "\r\n") ] = 0;
+
 		int exit_comparison = strcmp(line,exit_string);
 		if(exit_comparison == 0){
-			//dump queue
-			for(int i=0;i<=args_q->size;i++){
-				struct QNode *n = dequeue(args_q);
-				if(n!=NULL){printf("%d -- %s\n",n->id, n->key);}
-			}
-			exit(0);
+			should_run=0;
+			exit(0);/*need a way to exit child process*/
 		}else{
 			should_run=1;
 		}
 
-		enqueue(args_q, run_count, line);/*Store the command in the argument queue*/
-/*
-		//FOR DEBUGGING
-		struct QNode *n = peek(args_q);
-		printf("%d -- %s\n",n->id, n->key); 
-*/
-		if(strcmp(line, "history")==0){
-			//printf("size of queue is == %d\n", args_q->size);/*for debugging*/
+
+		int hist_comparison = strcmp(line, "history");
+//		char history_array[10][(MAX_LINE/2+1)];
+		struct Queue *history_q = createQueue();		
+		if(hist_comparison == 0){
 			for(int i=0;i<10;i++){
 				struct QNode *n = pop(args_q);
 				if(n!=NULL){
-					printf("%d --- %s\n", n->id, n->key);
+					printf("%d -- %s\n", n->id, n->key);
+					enqueue(history_q, n->id, n->key);
 				}
 			}
-		}	
-		
-		/* Parse the input from keyboard into tokens then 'save' to args array */
-		tokenized_line = parse_input(line);
-		for(int i=0;i<(MAX_LINE/2+1);i++){
-			if(tokenized_line[i] != NULL){
-				if(strcmp(tokenized_line[i], "&")==0){
-					should_wait = 1;
-					continue;
+			for(int i=0;i<10;i++){
+				struct QNode *h = pop(history_q);
+				if(h!=NULL){
+					enqueue(args_q, h->id, h->key);
 				}
-				args[i] = tokenized_line[i];
-//				printf("i:%d = %s\n",i,args[i]);/*for debugging */
-	
-			}else{
-				//continue;
-				break;
 			}
+		}else{
+			enqueue(args_q, run_count, line);/*Store the command in the argument queue*/
 		}
 
-
-	
-/*FORK CHILD PROCESS*/
 		pid_t pid = fork();
 		if(pid==0){
-//			printf("entered child process\n");/*for debugging*/
-			execvp(args[0], args);
+			if(strcmp(line,"history")!=0){
+				//If not history do the normal operation and tokenize the line using regular spaces as well other whitespace delimiters
+				tokenized_line = parse_input(line);
+				for(int i=0;i<(MAX_LINE/2+1);i++){
+					if(tokenized_line[i] != NULL){
+						if(strcmp(tokenized_line[i], "&")==0){
+							should_wait = 1;
+							continue;
+						}
+						args[i] = tokenized_line[i];
+					}else{
+						break;
+					}
+				}
+				execvp(args[0], args);
+			}else if(strcmp(line, "history")==0){
+				//If history no execution of a command takes place, only parsing the input using a separate set of delimiters
+				tokenized_history = history_parse(line);
+				for(int i=0;i<(MAX_LINE/2+1);i++){
+					if(tokenized_history[i]!=NULL){
+						args[i] = tokenized_history[i];
+					}else{
+						break;
+					}
+				}
+			}
 		}else{
 			if(should_wait){
 				wait(NULL);
 			}else{
-				waitpid(pid, &status, WUNTRACED);/*ask the professor about this since now it seems the parent is always waiting for the child's state to change*/
+				waitpid(pid, &status, WUNTRACED);
 			}
-//			printf("line at exit = %s\n", line);		
-//			enqueue(args_q, run_count, line);
-//			printf("parent finished\n");/*for debugging*/
 		}
 		//CLEAR OUT ARGS SO MULTIPLE 'ENTER' KEYS WON'T REPEAT PREVIOUS COMMAND
 		empty_args(args);
@@ -229,6 +234,27 @@ char **parse_input(char *line){
 		
 		string_token = strtok(NULL, whitespace);
 	}	
+	arguments[position] = NULL;
+	return arguments;
+}
+
+char **history_parse(char *line){
+	char *whitespace = "\r\n\a";
+	int bufsize = MAX_LINE;
+	int position = 0;
+	char **arguments = malloc(sizeof(char *) * bufsize);
+	char *string_token;
+	string_token = strtok(line, whitespace);
+	while(string_token != NULL){
+		arguments[position] = string_token;
+		position++;
+		
+		if(position>=bufsize){
+			bufsize+= MAX_LINE;
+			arguments = realloc(arguments, bufsize * sizeof(char *));
+		}
+		string_token = strtok(NULL, whitespace);
+	}
 	arguments[position] = NULL;
 	return arguments;
 }
