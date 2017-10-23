@@ -9,6 +9,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <string.h>
+#include <ctype.h>
 
 //##################################################################//
 //##################################################################// 
@@ -138,14 +139,13 @@ int main(void)
 		int exit_comparison = strcmp(line,exit_string);
 		if(exit_comparison == 0){
 			should_run=0;
-			exit(0);/*need a way to exit child process*/
+			exit(0);
 		}else{
 			should_run=1;
 		}
 
 
 		int hist_comparison = strcmp(line, "history");
-//		char history_array[10][(MAX_LINE/2+1)];
 		struct Queue *history_q = createQueue();		
 		if(hist_comparison == 0){
 			for(int i=0;i<10;i++){
@@ -167,6 +167,56 @@ int main(void)
 
 		pid_t pid = fork();
 		if(pid==0){
+			if(should_run==0){ exit(0); }
+				
+			char *placeholder = line, *p = placeholder;
+			int id = -1;
+			while(*p){
+				if(isdigit(*p)){
+					 id = strtol(p, &p, 10);
+				}else{
+					p++;
+				}
+			}
+
+			if(id != -1){
+				//note i was getting bugs using args_q->size
+				for(int i=0;i<10;i++){
+					struct QNode *n = pop(args_q);
+					if(id == n->id){
+						//found, parse the cmd
+						tokenized_line = parse_input(n->key);
+						for(int j=0;j<(MAX_LINE/2+1);j++){
+							if(tokenized_line[j]!=NULL){
+								args[j] = tokenized_line[j];
+							}else{
+								break;
+							}
+						}
+						execvp(args[0],args);
+					}else{
+						continue;
+					}
+				}
+			}
+
+			if(strcmp(line,"!!")==0){
+				struct QNode *latest = pop(args_q);
+				latest=pop(args_q);
+				if(latest!=NULL){
+					tokenized_line = parse_input(latest->key);
+					for(int i=0;i<(MAX_LINE/2+1); i++){
+						if(tokenized_line[i]!=NULL){
+							args[i] = tokenized_line[i];
+						}else{
+							break;
+						}
+					}
+					execvp(args[0], args);
+				}else{
+					printf("no command in history\n");
+				}
+			}
 			if(strcmp(line,"history")!=0){
 				//If not history do the normal operation and tokenize the line using regular spaces as well other whitespace delimiters
 				tokenized_line = parse_input(line);
