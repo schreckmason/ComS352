@@ -19,20 +19,6 @@
 /*						MAIN					*/
 /************************************************/
 int main(){
-	/* Default Project */
-
-	//1 - Receive client signal
-	
-	//2 - Start new process
-
-	//3 - Compute the digital signature of client's message
-
-	/*4 - 
-
-		If the digital signature computed here matches the digital signature sent by the client then return 'true' to the client
-
-		else return 'false' to the client
-	*/
   int welcomeSocket, newSocket;
   int valread;
   char buffer[1024];
@@ -60,6 +46,8 @@ int main(){
 while(1){
   addr_size = sizeof serverStorage;
   newSocket = accept(welcomeSocket, (struct sockaddr *) &serverStorage, &addr_size);
+  pid_t pid = fork();
+  if(pid==0){
 
 	valread = read(newSocket, buffer, 1024);
 	if(valread<0){
@@ -94,6 +82,7 @@ while(1){
 			send(newSocket, result, strlen(result),0);
 		}
 	}
+  }
 	sleep(1);
 }
   return 0;
