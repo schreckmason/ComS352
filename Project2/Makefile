@@ -1,5 +1,7 @@
 #CFLAGS = -g -Wall -Werror
 
+all: server client
+
 server:
 	gcc Server.c -o server -lssl -lcrypto
 
