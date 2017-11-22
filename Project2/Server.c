@@ -1,4 +1,3 @@
-
 /************************************************/
 /*					INCLUDES					*/
 /************************************************/
@@ -26,17 +25,12 @@ int main(){
 	struct sockaddr_in serverAddr;
 	struct sockaddr_storage serverStorage;
 	socklen_t addr_size;
-
-
 	welcomeSocket = socket(PF_INET, SOCK_STREAM, 0);
-
 	serverAddr.sin_family = AF_INET;
 	serverAddr.sin_port = htons(8000);
 	serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
 	memset(serverAddr.sin_zero, '\0', sizeof serverAddr.sin_zero);  
-
 	bind(welcomeSocket, (struct sockaddr *) &serverAddr, sizeof(serverAddr));
-
 	if(listen(welcomeSocket,5)==0){
 		printf("Listening\n");
 	}else{
@@ -48,26 +42,20 @@ int main(){
 		newSocket = accept(welcomeSocket, (struct sockaddr *) &serverStorage, &addr_size);
 		pid_t pid = fork();
 		if(pid==0){
-
 			valread = read(newSocket, buffer, 1024);
 			if(valread<0){
 				printf("error no string send\n");
 			}else{
 				printf("%s\n",buffer);
-
 				char *test = "server received msg\n";
 				send(newSocket, test, strlen(test), 0);
-
 				//read in the signature
 				valread = read(newSocket, hashBuffer, 1024);
 				printf("encoded string from client:: %s\n",hashBuffer);
-
 				printf("\n");
-
 				unsigned char encode[SHA_DIGEST_LENGTH];
 				size_t len = strlen(buffer);
 				SHA1(buffer,len,encode);
-
 				char serverSign[256]="";
 				strcat(serverSign, stringToEncodedAscii(encode));
 				printf("encoded string upon server:: %s\n",serverSign);

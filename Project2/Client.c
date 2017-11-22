@@ -59,22 +59,15 @@ int main(){
 		struct sockaddr_in serverAddr;
 		socklen_t addr_size;
 		int valread;
-
 		clientSocket = socket(PF_INET, SOCK_STREAM, 0);
-
 		serverAddr.sin_family = AF_INET;
 		serverAddr.sin_port = htons(8000);
 		serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
 		memset(serverAddr.sin_zero, '\0', sizeof serverAddr.sin_zero);  
-
-
 		addr_size = sizeof serverAddr;
 		connect(clientSocket, (struct sockaddr *) &serverAddr, addr_size);
-
-
 		//SEND THE STRING FIRST
 		send(clientSocket, s, strlen(s),0);
-
 		valread = read(clientSocket, buffer, 1024);
 		if(valread < 0){
 			printf("no response\n");
