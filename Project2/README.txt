@@ -6,3 +6,5 @@
 6. compile like "gcc Client.c -lssl -lcrypto"
 7. COMPILER ==== HAPPY
 
+
+Ignore compiler warnings
