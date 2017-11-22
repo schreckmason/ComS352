@@ -51,11 +51,13 @@ int main(){
 
   bind(welcomeSocket, (struct sockaddr *) &serverAddr, sizeof(serverAddr));
 
-  if(listen(welcomeSocket,5)==0)
+  if(listen(welcomeSocket,5)==0){
     printf("Listening\n");
-  else
+  }else{
     printf("Error\n");
+  }
 
+while(1){
   addr_size = sizeof serverStorage;
   newSocket = accept(welcomeSocket, (struct sockaddr *) &serverStorage, &addr_size);
 
@@ -70,7 +72,7 @@ int main(){
 	
 		//read in the signature
 		valread = read(newSocket, hashBuffer, 1024);
-		printf("encoded string :: %s\n",hashBuffer);
+		printf("encoded string from client:: %s\n",hashBuffer);
 	
 		printf("\n");
 
@@ -80,11 +82,9 @@ int main(){
 
 		char serverSign[256]="";
 		strcat(serverSign, stringToEncodedAscii(encode));
-		printf("encoded string ::%s\n",serverSign);
+		printf("encoded string upon server:: %s\n",serverSign);
 
 		int cmp = strcmp(serverSign, hashBuffer);
-//		printf("\n");
-//		printf("%d\n",cmp);
 		if(cmp == 0){
 			char *result = "true";
 			send(newSocket, result, strlen(result),0);
@@ -94,8 +94,7 @@ int main(){
 			send(newSocket, result, strlen(result),0);
 		}
 	}
-	
-
+	sleep(1);
+}
   return 0;
-	
 }

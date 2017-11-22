@@ -35,6 +35,7 @@ int main(){
 //1 -- Get user input (scan single line from the terminal)
 
 //2 -- Hash user input using SHA1
+while(1){
 	char s[256];
 	printf("enter the string : ");
 	fgets(s, 256, stdin);
@@ -66,6 +67,7 @@ int main(){
   serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
   memset(serverAddr.sin_zero, '\0', sizeof serverAddr.sin_zero);  
 
+  
   addr_size = sizeof serverAddr;
   connect(clientSocket, (struct sockaddr *) &serverAddr, addr_size);
   
@@ -84,5 +86,6 @@ int main(){
 	char matchBuf[256];
 	valread = read(clientSocket, matchBuf, 256);
 	printf("%s\n",matchBuf);
+}
   return 0;
 }
